@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="purchase_order_form_inherit_test">            
+            <field name="name">purchase.order.form.inherit.test</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+                <field name="arch" type="xml"> 
+                    <xpath expr="//field[@name='order_line']//tree//field[@name='price_subtotal']" position="after">
+                        <button name="show_item_action" type="object" title="Ir al registro" class="fa fa-external-link btn-link"/>
+                    </xpath>
+                </field>
+        </record>
+
+
+        <record id="purchase_order_line_form777" model="ir.ui.view">
+            <field name="name">purchase.order.line.form777</field>
+            <field name="model">purchase.order.line</field>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <form string="Purchase Order Line" create="false" edit="false">
+                    <sheet>
+                       <group>
+                           <group>
+                                <field name="product_id"/>
+                            </group>
+                        </group>
+                        <group>
+                           <group>
+                                <field name="invoice_id"/>
+                                <field name="partner_id"/>
+                                <field name="order_id"/>
+                                <field name="date_order"/>
+                            </group>
+                           <group>
+                                <field name="date_invoice"/>
+                                <field name="product_qty"/>
+                                <field name="qty_received"/>
+                                <field name="price_unit"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>            
+
+     </data>
+</odoo>
