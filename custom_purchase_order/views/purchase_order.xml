@@ -43,9 +43,34 @@
                             </field>
                         </group>
                     </sheet>
+                    <footer>
+                        <button special="cancel" string="Continuar" class="oe_highlight"/>
+                    </footer>
                 </form>
             </field>
         </record>            
+
+        <record id="res_config_settings_view_form_stock_test" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase.stock</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='purchase_setting_container']" position="after">
+
+                <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"/>
+                                <div class="o_setting_right_pane">
+                                    <label for="qty_lines_on_purchase_line"/>
+                                    <div class="text-muted">Definirá las lineas que ese mostraran en el botón de consulta de cada pedido</div>
+                                    <field name="qty_lines_on_purchase_line" widget="int"/>
+                                </div>
+                            </div>
+                </div>
+            </xpath>
+        </field>
+        </record>
+
 
      </data>
 </odoo>
