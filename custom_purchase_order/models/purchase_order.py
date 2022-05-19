@@ -5,21 +5,22 @@ from odoo import api, fields, models
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    invoice_id = fields.Many2one('account.move', string="Factura",compute="_invoice_factura_order") 
-    date_invoice = fields.Date(string="Fecha Factura",compute="_invoice_factura_order_date") 
-    
+    purchase_query_ids = fields.One2many('purchase.order', 'order_line_query_id', string="Compras del producto",compute="_compute_result_purchase")
 
-    def _invoice_factura_order(self):
+    @api.depends("order_id.order_line")
+    def _compute_result_purchase(self):
         for rec in self:
-            rec.invoice_id = False
-            if rec.order_id.invoice_ids:
-                rec.invoice_id = rec.order_id.invoice_ids[0]
-
-    def _invoice_factura_order_date(self):
-        for rec in self:
-            rec.date_invoice = False
-            if rec.order_id.invoice_ids:
-                rec.date_invoice = rec.order_id.invoice_ids[0].date
+            rec.purchase_query_ids = self.env['purchase.order']
+            id_purchaces = []
+            purchases = self.env['purchase.order'].search([])
+            for pur in purchases:
+                for order_line in pur.order_line:
+                    if rec.product_id.id == order_line.product_id.id:
+                        id_purchaces.append(pur.id)
+            for line in self.env['purchase.order'].browse(set(id_purchaces)):
+                rec.write({'purchase_query_ids': [(4, line.id)]})
+                rec.purchase_query_ids.write({'product_query': rec.product_id.id})
+            
 
 
     def show_item_action(self):
@@ -32,5 +33,60 @@ class PurchaseOrderLine(models.Model):
             'context':self._context,
             'view_mode':'form',
             'view_id':self.env.ref('custom_purchase_order.purchase_order_line_form777').id,
-            'target':'new'
+            'target':'new',
+            'context': {'create': False, 'delete': False, 'edit':False},
+            
         }
+
+
+
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
+
+    order_line_query_id = fields.Many2one('purchase.order.line')
+    invoice_name = fields.Many2one('account.move', string="Factura",compute="_invoice_factura_order") 
+    date_invoice = fields.Date(string="Fecha Factura",compute="_invoice_factura_order_date") 
+    product_query = fields.Many2one('product.product', string="Producto") 
+    product_qty = fields.Float(string="Cantidad Pedida",compute="_compute_product_qty") 
+    qty_received = fields.Float(string="Cantidad Recibida",compute="_compute_qty_received") 
+    price_unit = fields.Float(string="Costo Neto",compute="_compute_price_unit") 
+    bodeg = fields.Char(string="Sucursal") 
+    
+
+    def _compute_product_qty(self):
+        for rec in self:
+            mount = 0
+            for line in rec.order_line:
+                if line.product_id.id == rec.product_query.id:
+                    mount += line.product_qty
+            rec.product_qty = mount
+
+
+    def _compute_qty_received(self):
+        for rec in self:
+            mount = 0
+            for line in rec.order_line:
+                if line.product_id.id == rec.product_query.id:
+                    mount += line.qty_received
+            rec.qty_received = mount
+
+    def _compute_price_unit(self):
+        for rec in self:
+            mount = 0
+            for line in rec.order_line:
+                if line.product_id.id == rec.product_query.id:
+                    mount += line.price_unit
+            rec.price_unit = mount
+
+
+    def _invoice_factura_order(self):
+        for rec in self:
+            rec.invoice_name = False
+            if rec.invoice_ids:
+                rec.invoice_name = rec.invoice_ids[0]
+
+    def _invoice_factura_order_date(self):
+        for rec in self:
+            rec.date_invoice = False
+            if rec.invoice_ids:
+                rec.date_invoice = rec.invoice_ids[0].date
